@@ -1,0 +1,30 @@
+---
+title: "Data Cleaning"
+author: "Aleksander Brynjulf Hübert"
+date: "04/05/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+bankData <- read.delim("data/bank-full.csv", sep =";" ,header = T, strip.white = TRUE)
+
+bankData[bankData == "unknown"] <- NA
+
+sum(is.na(bankData))
+```
+
+
+```{r}
+
+```
+
