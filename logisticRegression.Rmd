@@ -9,7 +9,51 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(glmnet)
+library(ModelMetrics)
+```
 
+
+```{r}
+test_set_indices = sample(1:nrow(bankData), round(0.2 * nrow(bankData)), replace = FALSE)
+training_set = bankData[-test_set_indices,] 
+test_set = bankData[test_set_indices,] 
+
+x_train <- training_set %>%
+    select(-y)
+y_train <- training_set %>%
+    select(y)
+
+x_test <- test_set %>%
+    select(-y)
+y_test <- test_set %>%
+    select(y)
+
+#converting to matrix to be compatible with the glmnet package
+x_train_mat <-  model.matrix(~. -1, x_train)
+y_train_mat <- model.matrix(~. -1, y_train)[,1]
+
+x_test_mat <- model.matrix(~. -1, x_test)
+y_test_mat <-  model.matrix(~. -1, y_test)[,1]
+```
+
+
+```{r}
+cv_ridge_logistic <- cv.glmnet(x_train_mat, y_train_mat, alpha = 0, family = "binomial")
+cv_ridge_logistic
+cv_best_lambda_logistic <- cv_ridge_logistic$lambda.min
+
+cv_ridge_pred_logistic = predict(cv_ridge_logistic,s=cv_best_lambda_logistic ,x_test_mat)
+
+cv_mse_log <-mse(cv_ridge_pred_logistic, y_test_mat)
+'best lambda MSE: ' 
+cv_mse_log
+
+?confusion.glmnet
+?glmnet
+confusion.glmnet(cv_ridge_logistic, newx = x_test_mat, newy = y_test_mat)
 ```
 

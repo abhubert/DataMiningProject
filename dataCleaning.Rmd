@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 library(tidyverse)
 library(ggplot2)
 ```
@@ -21,10 +21,18 @@ bankData <- read.delim("data/bank-full.csv", sep =";" ,header = T, strip.white =
 bankData[bankData == "unknown"] <- NA
 
 sum(is.na(bankData))
+
+sum(is.na(bankData$contact))
+sum(is.na(bankData$poutcome))
+
+#for testing the logistic regression without NAs
+bankData <- bankData[,-16]
+
+bankData <- na.omit(bankData)
 ```
 
 
 ```{r}
-
+##correlations of NA values will go here
 ```
 
