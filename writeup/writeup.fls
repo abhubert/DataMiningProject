@@ -121,6 +121,8 @@ INPUT /usr/local/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7
 INPUT /usr/local/texlive/2017/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
 INPUT /usr/local/texlive/2017/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/local/texlive/2017/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
+INPUT /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.bbl
+INPUT /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.bbl
 OUTPUT /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf
 INPUT /usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux
