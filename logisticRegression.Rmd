@@ -40,7 +40,7 @@ x_test_mat <- model.matrix(~. -1, x_test)
 y_test_mat <-  model.matrix(~. -1, y_test)[,1]
 ```
 
-
+Ridge Regression
 ```{r}
 cv_ridge_logistic <- cv.glmnet(x_train_mat, y_train_mat, alpha = 0, family = "binomial")
 cv_ridge_logistic
@@ -55,5 +55,22 @@ cv_mse_log
 ?confusion.glmnet
 ?glmnet
 confusion.glmnet(cv_ridge_logistic, newx = x_test_mat, newy = y_test_mat)
+```
+
+Lasso Regression
+
+```{r}
+cv_lasso_logistic <- cv.glmnet(x_train_mat, y_train_mat, alpha = 1, family = "binomial")
+cv_lasso_logistic
+cv_lasso_lambda_logistic <- cv_lasso_logistic$lambda.min
+
+cv_lasso_pred_logistic = predict(cv_lasso_logistic,s=cv_lasso_lambda_logistic ,x_test_mat)
+
+cv_mse_lasso_log <-mse(cv_lasso_pred_logistic, y_test_mat)
+'best lambda MSE: ' 
+cv_mse_lasso_log
+
+
+confusion.glmnet(cv_lasso_logistic, newx = x_test_mat, newy = y_test_mat)
 ```
 
