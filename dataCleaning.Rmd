@@ -18,6 +18,10 @@ library(ggplot2)
 ```{r}
 bankData <- read.delim("data/bank-full.csv", sep =";" ,header = T, strip.white = TRUE)
 
+#creates a dataset that keeps NAs as 'unknown'
+bankDataUnkown <- bankData
+
+#changes 'unknown' to NA
 bankData[bankData == "unknown"] <- NA
 
 sum(is.na(bankData))
@@ -29,10 +33,20 @@ sum(is.na(bankData$poutcome))
 bankData <- bankData[,-16]
 
 bankData <- na.omit(bankData)
+
+ggplot(bankData, aes(y))+
+    geom_bar()
 ```
 
 
 ```{r}
+library(corrplot)
 ##correlations of NA values will go here
+
+corrmat <-  model.matrix(~. -1, bankDataUnkown)
+
+correlations <- cor(corrmat)
+
+corrplot(correlations)
 ```
 

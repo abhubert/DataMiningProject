@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  30 APR 2020 14:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  30 APR 2020 18:17
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -324,26 +324,22 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 LaTeX Font Info:    Try loading font information for U+msb on input line 28.
  (/usr/local/texlive/2017/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) (/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.bbl
-
-LaTeX Warning: Empty `thebibliography' environment on input line 3.
-
-) [1
+) (/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.bbl) [1
 
 {/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux) ) 
 Here is how much of TeX's memory you used:
- 4195 strings out of 492995
- 56710 string characters out of 6132704
- 132386 words of memory out of 5000000
- 7665 multiletter control sequences out of 15000+600000
- 9796 words of font info for 37 fonts, out of 8000000 for 9000
+ 4199 strings out of 492995
+ 56779 string characters out of 6132704
+ 134392 words of memory out of 5000000
+ 7668 multiletter control sequences out of 15000+600000
+ 10142 words of font info for 38 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,5n,43p,307b,202s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb>
-Output written on /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf (1 page, 39764 bytes).
+ 41i,5n,43p,923b,202s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on /Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf (1 page, 69284 bytes).
 PDF statistics:
- 24 PDF objects out of 1000 (max. 8388607)
- 16 compressed objects within 1 object stream
+ 28 PDF objects out of 1000 (max. 8388607)
+ 19 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
