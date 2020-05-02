@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex writeup"] 1588264410 "writeup.aux" "writeup.bbl" "writeup" 1588267048
+["bibtex writeup"] 1588264410 "writeup.aux" "writeup.bbl" "writeup" 1588370151
   "/usr/local/texlive/2017/texmf-dist/bibtex/bst/base/plain.bst" 1480098433 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "summative.bib" 1588263668 1856 a81289f90f69719805247a98686d5ed5 ""
-  "writeup.aux" 1588267048 630 51806d23fedc939f1d3ef0a570f02ef3 ""
+  "writeup.aux" 1588370151 630 51806d23fedc939f1d3ef0a570f02ef3 ""
   (generated)
-  "writeup.bbl"
   "writeup.blg"
-["pdflatex"] 1588267048 "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf" "writeup" 1588267048
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux" 1588267048 630 51806d23fedc939f1d3ef0a570f02ef3 ""
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" 1588267047 2020 3ff24f148f8e2035938a7e39b5b490f1 ""
+  "writeup.bbl"
+["pdflatex"] 1588370151 "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf" "writeup" 1588370151
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux" 1588370151 630 51806d23fedc939f1d3ef0a570f02ef3 ""
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" 1588370150 2021 48a4e3a4249eaec557a3d4adda71a345 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1480098698 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1480098698 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -84,12 +84,12 @@
   "/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1495593472 2350277 a699055bee05bf8a40b0504752487295 ""
   "/usr/local/texlive/2017/texmf-var/web2c/pdftex/pdflatex.fmt" 1495593487 4129592 0e6cfee100d68e6d96b92c0258f2ff73 ""
   "/usr/local/texlive/2017/texmf.cnf" 1495593465 577 2b71d4d888f9e5560b2e99985915a9fa ""
-  "writeup.aux" 1588267048 630 51806d23fedc939f1d3ef0a570f02ef3 ""
+  "writeup.aux" 1588370151 630 51806d23fedc939f1d3ef0a570f02ef3 ""
   "writeup.bbl" 1588264411 505 d281e16530a693f3492bdb4beec9529a "bibtex writeup"
-  "writeup.tex" 1588267047 2020 3ff24f148f8e2035938a7e39b5b490f1 ""
+  "writeup.tex" 1588370150 2021 48a4e3a4249eaec557a3d4adda71a345 ""
   (generated)
   "writeup.aux"
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.log"
-  "writeup.log"
   "writeup.pdf"
+  "writeup.log"
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.log"
   "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf"
