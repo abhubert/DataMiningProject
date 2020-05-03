@@ -1,0 +1,521 @@
+---
+title: "Summative_project"
+author: "Song"
+date: "2020/4/28"
+output: html_document
+---
+# The syntax structure
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(rpart)
+library(mice)
+library(DMwR)
+library(vcd)
+library(car)
+library(caret)
+```
+
+## Part A.Preprocessing
+1.Import the data from the file and know the basics of dataframe
+(Just a reminder,if you can not open the file in the current working directory,you need to paste your file to this directory and also try to run it directly in the console.Sometimes it doesn't work well in the markdown file)
+```{r}
+bank<-read.table("bank/bank-additional/bank-additional-full.csv",header=TRUE,sep=";")
+```
+
+```{r}
+dimensions_of_bankdata<-dim(bank)
+str(bank)
+```
+The dimensions of the dataset are  41188 rows 21 columns.It means we have 41188 observations and 21 unprocessed variables.The variables are quiet bounded into four main aspects.One from the clients,the personality definitely has some influence;one from the last contact,possibly after we advertise through the phone some clients could prefer to buy;one from the social and economical contexts,prosperous economic condition will definitely prompt clients to buy more products and in a good effects circle;the last contains the all the other possible influential variables. 
+Viewing from the variables' features,we could see that these variables are mainly composed of factor and numeric variables,the numbers of each is fairly equivalent.
+
+2.Preliminary Analysis and preprocessing
+A.Find the pattern of missing values
+```{r}
+is.null(bank)
+sum(is.na(bank))==0
+pattern<-md.pattern(bank)
+```
+First we need to find out how many rows or columns are missing ,we use is.null to investigate but find none and we use the second command to test it is true that there is no missing value and we could visualize that we actually have no missing value in the numeric forms in this dataset.However,we could not ignore the possbility of missing value in the format of level like unknown and unrecoginizable in the dataset ,so we need to know more details of the levels of the variables especilly the factor variables.
+
+```{r}
+bank[,2]<-factor(bank[,2],levels = levels(bank[,2]),labels=c("admin","blue-collar","entrepreneur","housemaid","management","retired", "self-employed","services","student","technician","unemployed","unknown"))
+```
+
+```{r}
+factor_location<-vector()
+for (i in 1:21){factor_location[i]<-is.factor(bank[,i]) }
+factor_variables<-bank[,factor_location]
+levels_list<-list()
+for (i in 1:dim(factor_variables)[2]){
+  levels_list[[i]]<-table(factor_variables[,i])
+}
+```
+We could see there are many unknowns in the variables:job,maritial, education,default,housing loan,personal loan,for the education and default variables,the missing values are relatively large.Therefore we are quite intereseted in how are the missing values distributed.After learning the missing pattern,we could possibly find how to clean this dataset
+
+
+# First we need to find the missing value pattern with the dependable variables
+```{r}
+y_class<-data.frame(table(bank$y))
+colnames(y_class)<-c("class","amount")
+pie(y_class$amount,labels=y_class$class,radius=0.5,edges = 100,col=rainbow(2),main="Overall subscription decisions")
+
+```
+We could see the y are not well distributed since we have so many no and relatively small amount of yes.It is a reflection of the reality for people to buy such a product.The ratio is about 8  if we compare no to yes.  
+```{r}
+y_missingvariables_list<-list()
+for (i in 1:6){
+  y_missingvariables_list[[i]]<-table(bank$y,factor_variables[,i])
+}
+```
+The unknown values between no and yes class are basicly flucturate near 8 for varible job,maritial,education,housing and loans.This means they have connection wiith y but not so clear strong connection so that it could still be considered to have missing values at completely random
+
+But for default history,the ratio is relatively strange,a larger proportion denoted by unknown choosed not to subscibe the term deposit,there is no clear relationship between missing values for default and y
+
+     
+         no unknown   yes
+  no  28391    8154     3
+  yes  4197     443     0
+
+# Then we could analyze the missing values in their own to see whether they are missing not at random.For variables job,maritial,default,housing loan,personal loan the missing amounts are small and the number for each level  corresponds to the normal situation.No clear rules to verify missing not at random.
+
+However,the education level seems to have connection with itself as you can see there are very few people in illiterate class,we are aware of the education improvement policies and it should be low,but this number is really low compared with all the other levels.Maybe the people with higher education like university degree are preferred to state while people who receive less education do not want to show that.
+     
+    basic.4y basic.6y basic.9y high.school illiterate professional.course university.degree unknown
+  no    3748  2104     5572        8484         14             4648        10498           1480
+  yes   428    188      473        1031          4             595        1670             251
+
+# Finally we could think whether they have relationships among other variables when they have missing data(missing at random).However,there are too many variables and we could not test every combination since some are not meaningful and definitely not correlated too much.
+We focus on the default history with other variables and we could get all the following tables
+```{r}
+table(bank$default,bank$education)
+table(bank$default,bank$job)
+table(bank$default,bank$marital)
+table(bank$default,bank$housing)
+table(bank$default,bank$loan)
+table(bank$default,bank[,16])
+table(bank$default,bank[,17])
+```
+We could see from these tables that the higher the education,the lower rate of default;the more official work the interviewee does,the lower rate of default,the married also has lower default rate,the employment variation rate is higher,the consumer price index is lower,the default rate is lower.Hence,the missing values of default is missing at random from my perspective.
+
+In all, we could possibly think that jobs,maritial,personal loan and housing loan have missing value completely at random,but education is missing not at random,while default variable is missing at random,depends on some variables.Therefore, we would possibly gesture different methods to deal with these missing values.
+
+
+## Filling the datasets
+```{r}
+missing_variables<-c("job","marital","education","default","housing","loan")
+for (i in missing_variables){bank[bank[[i]]=="unknown",i]<-NA}
+```
+Show the missing value pattern more clearly
+```{r}
+library(VIM)
+aggr_plot <- aggr(bank, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(bank), cex.axis=.6, gap=2, ylab=c("Histogram of missing data","Pattern"))
+```
+
+```{r}
+#  marginplot(bank[,c(2,3)])
+```
+
+Fill with the missing data at completely random 
+```{r}
+bank$loan<-factor(bank$loan,levels = levels(bank$loan)[-2],labels =levels(bank$loan)[-2])
+bank$housing<-factor(bank$housing,levels=levels(bank$housing)[-2],labels =levels(bank$housing)[-2] )
+#bank$education<-factor(bank$education,levels=levels(bank$eduction)[-8],labels=levels(bank$education)[-8])
+random_list=levels(bank$education)[-8]
+bank$education<-factor(bank$education,levels=random_list,labels =random_list)
+random_list<-levels(bank$education)[-8]
+bank$default<-factor(bank$default,levels=c("yes","no"),labels=c("yes","no"))
+bank$job<-factor(bank$job,levels=levels(bank$job)[-12],labels=levels(bank$job)[-12])
+bank$marital<-factor(bank$marital,levels=levels(bank$marital)[-4],labels=levels(bank$marital)[-4])
+
+bank_inside1<-knnImputation(bank[,-c(4,5,6,7,21)],k=5)
+bank$job<-bank_inside1$job
+bank$marital<-bank_inside1$marital
+bank_inside2<-knnImputation(bank[,-c(2,3,4,5,7,21)],k=5)
+bank_inside3<-knnImputation(bank[,-c(2,3,4,5,6,21)],k=5)
+bank$housing<-bank_inside2$housing
+bank$loan<-bank_inside3$loan
+```
+
+Fill with the missing data at random or not at random
+```{r}
+set.seed(1000)
+na_location<-is.na(bank$education)
+q<-vector()
+for(i in 1:sum(na_location)){
+  q[i]<-sampleCat(random_list,weights=c(0.2,0.15,0.1,0.1,0.4,0.03,0.02))
+}
+bank$education[is.na(bank$education)]<-q
+```
+
+```{r}
+mod <- rpart(default~ . , data=bank[!is.na(bank$default), -21],method="class")
+pred <- predict(mod, data=bank[is.na(bank$default),-21])
+bank$default[120]<-"yes"
+bank$default[is.na(bank$default)]="no"
+```
+In this way,we could see the probability to assign to the class no is 0.9999,hence,we would let one oberservation to be yes ,all the others to be no,randomly assign the location is Obs.120
+
+
+B.Preliminary Analysis and detect possible outliers
+First of all,we would do some statistics summary.
+1)
+```{r}
+factor_location<-vector()
+for (i in 1:20){factor_location[i]<-is.factor(bank[,i]) }
+factor_variables<-bank[,factor_location]
+levels_list<-list()
+for (i in 1:dim(factor_variables)[2]){
+  levels_list[[i]]<-table(factor_variables[,i])
+}
+names(levels_list)<-colnames(factor_variables)
+```
+We have already done the analysis for some categorical variables when deal with the missing values,so now just update the steps and do some similiar analysis again.
+
+For the job variable,most of the works are related to management work or some techinical jobs and also a large proportion of the jobs are the blue-collar.In all, the unemployed is large in number but small in ratio.In the whole sense,it corresponds to the real situtaion.
+
+In all,married people are a large part,however,some other status still can be considered.
+As for the education aspect,almost all of interviewees have received education but with different levels.The group that occupies the highest proportion is the group of people that got their university.degree.But we still have to notice that a fair large amount of people do not have enough education.
+
+Half people have housing loans while only one fifth have personal loans.
+
+A lot of contacts were released in May,Jun,Jul,Aug,it is mainly in the summer season,first half of the year,only few in the winter season.
+
+Besides,many contacts were done through cellular since nowdays it is really convenient to do phone call online.
+As for which of the day,it seems not matter too much.
+
+The previous outcome is really astonishing as many state that the result is nonexistent,possibly because they do not have experienced that many campaigns.
+
+2)The stats summary for the numeric variables
+```{r}
+numeric_variables<-c(1,11,12:14,16:20)
+stats_summary_numeric<-summary(bank[,numeric_variables])
+Basic_coefficients<-function(x){
+  Av<-mean(x,na.rm = TRUE)
+  Sd<-sd(x,na.rm = TRUE)
+  N<-length(x[!is.na(x)])
+  Sk<-sum((x[!is.na(x)]-Av)^3/Sd^3)/N
+  Ku<-sum((x[!is.na(x)]-Av)^4/Sd^4)/N-3
+  result<-c(Avg=Av,Std=Sd,Skew=Sk,Kurtosis=Ku)
+  return(result)
+}
+result<-Basic_coefficients(bank[,1])
+```
+
+From this stats summary,we could find that of all the observations,most are young people,only some are old people and the range is relatively large.
+While the duration has really extreme values,some people do not receive the phone call so they definitely have no subscriptions while some peole have gone through long time to have a second call.Probabaly we could just ignore this variable and leave it just as a benchmark.
+
+The campaign variable also has large outliers as you can see that some people have many contacts while some just receive one.It could be that some clients are thought to be the most potential ones,they could possibly bring us a lot of value.While that pdays seems to be a little bit interesting,as there are many 999 in this dataset,which means a lot of them did not receive any campaign like this intented one.Maybe they had but they just not realized or they refused to tell the truth or maybe they actually did not,then this time it could be a possible chance to enlighten them through this campaign.Therefore, you could see many 0s for the previous variable 
+
+And also we expect the poutcome variable is embedded with many nonexistent outcome.since many of them answered 0 in this pdays variable.
+
+As for the economics features,we find the consumer price index and consumer confidence index is low at that time ,which reflects the consumers confidence in buying products or goods is low.
+
+
+Secondly,we do some analysis by combining the target variable y and some features 
+1)Begin with the categorical variables,we list the tables and do the chise.test
+```{r}
+# crosstable for all these categorical variables
+categ_y<-list()
+for (i in 1:10){categ_y[[i]]<-table(factor_variables[,i],bank$y)}
+names_list1<-paste(colnames(factor_variables),"y",sep = ",")
+names(categ_y)<-names_list1
+
+# relationship tested by chisq.test to have a more quantitative testmonial
+relationship_categ_y<-list()
+for(i in 1:10){relationship_categ_y[[i]]<-assocstats(categ_y[[i]])}
+names(relationship_categ_y)<-names_list1
+
+```
+For the job variable,people who work in office like adminstrators or blue-collar or managers have more people to subscribe the products,but the ratio is actually lower.It is suspected that they have more stable income resources and maybe some bonus,they do not really have the interest to buy these products.While you could see the housemaid and the retired and students,etc,are more willing to subsribe the product.
+
+For the marital variable,the single people seems to have more interest in the products while the married couples have the most people to buy these products,but the symptom is not that strong.
+As for education,people who have higher education might want to buy more but connection is not strong.
+
+For default, housing and personal loan,the differences are really small and might ignorable
+
+Between y and contact,it seems when we use the cellular way to campaign we can have more chance to have clients subscribed a term deposit.Maybe in the cellular way, people have more direct impression and could remember for longer time ,then they could know the products more and they might buy more.
+
+While the ratio of success call towards total call when we refer to the month variable,we could find that  although we have few contacts in the winter season but a larger proportion of the contacts render the products success.
+As for the day_of_week,it seems this variable does not play an important role and does not have a strong connection.
+
+In terms of the outcome,you can see that even without campaign,some clients have their own information channel,they still subscribed.Under the condition that last campain is a success,the continuous subscription remains,but if last time it leaves a bad impression on the mind of the clients,they tend to not to subsribe ,only some clients still adhere to subsribe.
+
+We are able to verify what we have discovered from the chise.test,we can see that the previous outcome has strong connetction with the subscription result.The default and loan variable do not have strong influence.
+
+          [["contact,y"]]
+           
+               no   yes
+  cellular  22291  3853
+  telephone 14257   787
+     
+           [["month,y"]]
+     
+               no   yes           
+  apr         2093   539
+  aug         5523   655
+  dec           93    89
+  jul         6525   649
+  jun         4759   559
+  mar          270   276
+  may        12883   886
+  nov         3685   416
+  oct          403   315
+  sep          314   256
+  
+```{r}
+picture_list1<-list()
+picture_list1[[1]]<-ggplot(data=bank,aes(x=job))+geom_bar(aes(fill=y))+labs(title="job&y",x="job",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[2]]<-ggplot(data=bank,aes(x=marital))+geom_bar(aes(fill=y))+labs(title="marital&y",x="marital",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[3]]<-ggplot(data=bank,aes(x=education))+geom_bar(aes(fill=y))+labs(title="education&y",x="education",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[4]]<-ggplot(data=bank,aes(x=default))+geom_bar(aes(fill=y))+labs(title="default&y",x="default",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[5]]<-ggplot(data=bank,aes(x=housing))+geom_bar(aes(fill=y))+labs(title="housing&y",x="job",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[6]]<-ggplot(data=bank,aes(x=loan))+geom_bar(aes(fill=y))+labs(title="loan&y",x="loan",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[7]]<-ggplot(data=bank,aes(x=contact))+geom_bar(aes(fill=y))+labs(title="contact&y",x="contact",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[8]]<-ggplot(data=bank,aes(x=month))+geom_bar(aes(fill=y))+labs(title="month&y",x="month",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[9]]<-ggplot(data=bank,aes(x=day_of_week))+geom_bar(aes(fill=y))+labs(title="day_of_week&y",x="day_of_week",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list1[[10]]<-ggplot(data=bank,aes(x=poutcome))+geom_bar(aes(fill=y))+labs(title="poutcome&y",x="poutcome",y="amount",size=0.5)+theme(plot.title=element_text(hjust = 0.5,size = 20, face = "bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5 ),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+names(picture_list1)<-names_list1
+
+
+```
+
+2)Then we could do some analysis between the target variable y and continuous variables by visualization and means queal test.
+```{r}
+picture_list2_density<-list()
+picture_list2_density[[1]]<-ggplot(bank, aes(age, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="age&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[2]]<-ggplot(bank, aes(compaign, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="compaign&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[3]]<-ggplot(bank, aes(pdays, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="pdays&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[4]]<-ggplot(bank, aes(previous, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="previous&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[5]]<-ggplot(bank, aes(emp.var.rate, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="emp.var.rate&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[6]]<-ggplot(bank, aes(cons.price.idx, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="cons.price.index&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[7]]<-ggplot(bank, aes(cons.conf.idx, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="cons.conf.index&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_density[[8]]<-ggplot(bank, aes(euribor3m, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="euribor3m&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+
+picture_list2_density[[9]]<-ggplot(bank, aes(nr.employed, fill=y,colour=y))+
+  geom_density(alpha=0.1)+
+  labs(title="nr.employed&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+names(picture_list2_density)<-paste(names(bank[,c(1,12,13,14,16,17,18,19,20)]),"y",sep=",")
+
+```
+
+
+
+```{r}
+picture_list2_proportion<-list()
+picture_list2_proportion[[1]]<-
+  ggplot(bank, aes(age, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="age&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[2]]<-
+  ggplot(bank, aes(campaign, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="compaign&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[3]]<-
+  ggplot(bank, aes(pdays, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="pdays&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[4]]<-
+  ggplot(bank, aes(previous, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="previous&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[5]]<-
+  ggplot(bank, aes(emp.var.rate, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="emp.var.rate&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[6]]<-
+  ggplot(bank, aes(cons.price.idx, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="cons.price.idx&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[7]]<-
+  ggplot(bank, aes(cons.conf.idx, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="cons.conf.idx&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[8]]<-
+  ggplot(bank, aes(euribor3m, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="euribor3m&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+
+picture_list2_proportion[[9]]<-
+  ggplot(bank, aes(nr.employed, after_stat(count), fill = y))+geom_density(position = "fill")+
+  labs(title="nr.employed&y",size=0.5)+
+  theme(plot.title=element_text(hjust = 0.5,size = 20, face ="bold"),axis.text=element_text(size=10,face = "bold",angle = 20,hjust = 0.5),axis.title.x=element_text(size=14),axis.title.y=element_text(size=14))
+names(picture_list2_proportion)<-paste(names(bank[,c(1,12,13,14,16,17,18,19,20)]),"y",sep=",")
+```
+
+
+```{r}
+p_value<-matrix(ncol=2,nrow=9)
+for (i in 3:9){
+  p_value[1,1]<-round(t.test(bank$age~bank$y)$p.value,4)
+  p_value[1,2]<-round(wilcox.test(bank$age~bank$y)$p.value,4)
+  p_value[i,1]<-round(t.test(bank[[numeric_variables[i]]]~bank$y)$p.value,4)
+  p_value[i,2]<-round(wilcox.test(bank[[numeric_variables[i]]]~bank$y)$p.value,4)
+}
+rownames(p_value)<-paste(names(bank[,c(1,12,13,14,16,17,18,19,20)]),"y",sep=",")
+colnames(p_value)<-c("t.test","wilcox.test")
+```
+
+
+All of these variables are tested to have to different means under the two different levels,therefore all the numeric variables have some relationship with the target variable y.
+
+For the age variable, you could see that people aged in 25 to 60 do not want this products but people who are outside this range would like to buy more,they could possible think it would help them keep money valued or they need to save money to buy something,this is a good way to do that especially for very young people (under 25)
+
+For pdays,you could see if they do not have previous campaign,they amlost not buy that products and for people has a long campaign interval they could have a higher chance to subscribe this one.Maybe the clients need sometime to digest last campaign,if they think that is ok.They will accept it.
+
+For euribor3m,it seems when the time deposit rate is low that the clients have more interest in investing in this product since this could help them keep theri moeny at value.
+Also when the consumer confidence index,the number of people employed is on increasing that people would love to buy more things,they want to win more rewards ,they want to invest.
+
+3).Then we would like to know the correlations among all these independent variables
+```{r}
+dmy<-dummyVars(~.,data=bank[,-11])
+trsf<-data.frame(predict(dmy,newdata=bank[,-11]))
+trsf_cor<-cor(trsf)
+library(corrplot)
+corrplot(trsf_cor, order = "hclust", tl.col = "black", tl.srt = 45,cl.cex = 0.3,tl.cex = 0.7)
+```
+From this we could see that we basicly have some covariates link to others so severly since you could see some significant correlations but someare the contradictory status.like the loan.yes and loan.no.Then we could possibly deal with this in the model selection part.
+
+4).Then we would like to know more about the potential outliers and we would use the glm model to see how many outliers there are.
+```{r}
+glm_test<-glm(y~.,data = bank[,-11],family=binomial(link = "logit"))
+```
+
+```{r}
+LevelragePlot<-function(model){
+  NP<-length(coefficients(model))-1
+  N<-length(fitted(model))
+  plot(hatvalues(model),main="Observed series",ylab="Leverage",xlab="Observed Order")
+  abline(2*(NP+1)/N,0,col="red",lty=2)
+  abline(3*(NP+1)/N,0,col="red",lty=2)
+  identify(1:N,hatvalues(model),names(hatvalues(model)))
+}
+```
+
+```{r}
+hatv<-LevelragePlot(glm_test)
+```
+
+```{r}
+Np<-length(coefficients(glm_test))-1
+N<-length(fitted(glm_test))
+CutLevel<-4/Np-N-1
+plot(glm_test,which=4)
+abline(CutLevel,0,lty=2,col="red")
+```
+
+From these pictures, we could see there are actually outliers but not all of them are deletable since although some are really strong in influence but we still need that information to continue the analysis.However,we are still required to delete about 25 strongest nonsense outliers tested by outliertest.Following the command ,we could delete those observations:3220,21067,27690,17656,5551,7545,19061,15823,7720,17945,22193,18987,18395,5785,16338,21762,4165,12468,23361,7726,20633,4168,41082,17919,24489.Then we would have the following dataset.
+
+```{r}
+delete_obs<-c(3220,21067,27690,17656,5551,7545,19061,15823,7720,17945,22193,18987,18395,5785,16338,21762,4165,12468,23361,7726,20633,4168,41082,17919,24489)
+bank_1<-bank[-delete_obs,-11]
+bank_1<-unique.data.frame(bank_1)
+```
+Also we need to remove the duplicated rows to reduce the time spent on caculating the parameters of the models
+
+
+
+PartB.Variable Selection and possible variable transformations
+```{r}
+bank_2<-bank_1
+bank_2$age<-(bank_2$age-min(bank_2$age))/(max(bank_2$age)-min(bank_2$age))
+bank_2$campaign<-(bank_2$campaign-min(bank_2$campaign))/(max(bank_2$campaign)-min(bank_2$campaign))
+bank_2$pdays<-bank_2$pdays/1000
+bank_2$emp.var.rate<-exp(bank_2$emp.var.rate)/sum(exp(bank_2$emp.var.rate))
+bank_2$cons.conf.idx<-exp(bank_2$cons.conf.idx)/sum(exp(bank_2$cons.conf.idx))
+bank_2$cons.price.idx=bank_2$cons.price.idx/100
+bank_2$euribor3m<-(bank_2$euribor3m-min(bank_2$euribor3m))/(max(bank_2$euribor3m)-min(bank_2$euribor3m))
+bank_2$nr.employed<-(bank_2$nr.employed-min(bank_2$nr.employed))/(max(bank_2$nr.employed)-min(bank_2$nr.employed))
+bank_2$y<-ifelse(bank_2$y=="yes",1,0)
+```
+We have done some transformations based on the charateristics of these variables,some variables we adopt the min-max method,while some we use decimal scaling method like pdays and cons.price.idx since the largest number in them is really large.while some we use the vectorized normalization method,like the emp.var.rate.
+
+
+For the selection part,since there are too many correlated variables ,some are just in linear form relationship,so that we would like to use three methods to choose the appropriate variables for the next following analysis method.
+
+The first method is lasso,which is commonly used for dimension reduction.While the second we would use the adaptive lasso method since it seems there are some covariates are in strong relationships with other covariates.Normal lasso seems not deal with this really well.
+Third,we would like to choose the Principal component analysis method  for finding the most propos covariates. 
+```{r}
+# Lasso used
+bank_dummy_list<-dummyVars(~.,data=bank_2)
+bank_dummy<-data.frame(predict(bank_dummy_list,newdata=bank_2))
+grid<-10^seq(10,-2,length=100)
+lasso_cv = cv.glmnet(as.matrix(bank_dummy[,-57]), as.matrix(bank_dummy[,57]),alpha=0.08,lambda = grid)
+predictors_lasso = (coef(lasso_cv,s = lasso_cv$lambda.min)[-1,] != 0)
+Bank_final1<-bank_dummy[,colnames(bank_dummy)[which(predictors_lasso==TRUE)]]
+```
+
+```{r}
+# Adaptive lasso used
+library(msgps)
+fit4 <- msgps(as.matrix(bank_dummy[,-57]),y=as.vector(bank_dummy[,57]),penalty="alasso",gamma=1)
+coef(fit4)
+Bank_final2<-bank_dummy[,colnames(bank_dummy)[which(coef(fit4)[,4]!=0)]]
+```
+We used the BIC information criteria for the variable selection 
+
+```{r}
+# Principal component analysis used
+prcma<-prcomp(x=bank_dummy,scale=F)
+pve<-(prcma$sdev)^2/sum(prcma$sdev^2)
+cumsum(pve)<=0.7
+Bank_final3<-as.data.frame(prcma$x[,1:13])
+```
+
+Part3.Analysis methods used
+```{r}
+
+```
+
