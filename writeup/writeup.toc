@@ -2,9 +2,9 @@
 \contentsline {section}{\numberline {2}Data Set}{3}
 \contentsline {subsection}{\numberline {2.1}Data Selection}{3}
 \contentsline {subsection}{\numberline {2.2}Data Description}{3}
-\contentsline {section}{\numberline {3}Pre-processing}{4}
-\contentsline {subsection}{\numberline {3.1}Selecting Features}{4}
-\contentsline {subsection}{\numberline {3.2}Missing Values}{4}
+\contentsline {section}{\numberline {3}Pre-processing}{3}
+\contentsline {subsection}{\numberline {3.1}Missing Values}{3}
+\contentsline {subsection}{\numberline {3.2}Selecting Features}{4}
 \contentsline {section}{\numberline {4}Data Mining Methods}{4}
 \contentsline {subsection}{\numberline {4.1}Random Forest}{4}
 \contentsline {subsection}{\numberline {4.2}Logistic Regression}{4}

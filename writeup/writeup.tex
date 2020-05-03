@@ -69,16 +69,22 @@ The dataset was chosen with the express goal of being able to test data mining t
 We chose the bank marketing dataset ... ADD SOME DETAIL HERE
 
 \subsection{Data Description}
-The data is broken into four categories, client information, current campaign contact information, previous campaign information, social-economic context indicators. It contains a mix of categorical and numerical data with full descriptions available in appendix A. The data was collected between May 2008 and November 2010 from a Portuguese banking institution.
+The dimensions of the dataset are  41188 rows 21 columns.It means we have 41188 observations and 21 unprocessed variables.The data is broken into four categories, client information, current campaign contact information, previous campaign information, social-economic context indicators. It contains a mix of categorical and numerical data with full descriptions available in appendix A. The data was collected between May 2008 and November 2010 from a Portuguese banking institution.
+
+We could see the \textit{y} feature are not well distributed since we have so many no outcomes and relatively small amount of yes outcomes. It is a reflection of the reality for people to subscribe to a deposite. The ratio is approximately 8:1 when comparing no to yes. 
 
 \section{Pre-processing}
-\subsection{Selecting Features}
-
 \subsection{Missing Values}
+We could see there are many unknowns in the variables: job, maritial, education, default, housing loan, personal loan, for the education and default variables,the missing values are relatively large. Therefore we are quite intereseted in how are the missing values distributed. After learning the missing pattern, we could possibly find how to clean this dataset.
+
+\subsection{Selecting Features}
 
 \section{Data Mining Methods}
 \subsection{Random Forest}
 \subsection{Logistic Regression}
+Logistic regression is a better choice than a linear regression model in this case because our outcomes are strictly binary \cite{james_introduction_2013}. With a linear regression we could end up with a model that does not differentiate the categories as distinct while logistic takes this into account not allowing predictions half way between ``yes" and ``no" in our case. With logistic regression we code our categories as $0$ or $1$ and our prediction will be limited to the range $[0,1]$. Using a non-linear logistic function our prediction will fit an S-curve which is how we keep the prediction between $[0,1]$ \cite{james_introduction_2013}.
+
+
 \subsection{Support Vector Machines}
 \subsection{Neural Networks}
 \section{Summary}

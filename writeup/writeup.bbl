@@ -6,6 +6,12 @@ Richard Harris and Doris Forrester.
   {Study}, 1935-54.
 \newblock {\em Urban Studies}, 40(13):2661--2686, December 2003.
 
+\bibitem{james_introduction_2013}
+Gareth James, Daniela Witten, Trevor Hastie, and Robert Tibshirani, editors.
+\newblock {\em An introduction to statistical learning: with applications in
+  {R}}.
+\newblock Number 103 in Springer texts in statistics. Springer, New York, 2013.
+
 \bibitem{moro_data-driven_2014}
 S.~Moro, R.~Laureano, and P.~Cortez.
 \newblock {\em A {Data}-{Driven} {Approach} to {Predict} the {Success} of

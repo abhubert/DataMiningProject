@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex writeup"] 1588514510 "writeup.aux" "writeup.bbl" "writeup" 1588514647
+["bibtex writeup"] 1588519980 "writeup.aux" "writeup.bbl" "writeup" 1588520305
   "/usr/local/texlive/2017/texmf-dist/bibtex/bst/base/plain.bst" 1480098433 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "summative.bib" 1588263668 1856 a81289f90f69719805247a98686d5ed5 ""
-  "writeup.aux" 1588514646 1442 05388b83d6cca31d08e8c58397fb0d6d ""
+  "summative.bib" 1588519064 2437 b5877c0bf3e99324c759a7f99fc244c5 ""
+  "writeup.aux" 1588520304 1549 a5a3752ae77eaf99e07eb473cbc23883 ""
   (generated)
-  "writeup.bbl"
   "writeup.blg"
-["pdflatex"] 1588514646 "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf" "writeup" 1588514647
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux" 1588514646 1442 05388b83d6cca31d08e8c58397fb0d6d ""
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" 1588514646 5946 c4579a9da358f220c16415708b747e7b ""
+  "writeup.bbl"
+["pdflatex"] 1588520304 "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf" "writeup" 1588520305
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.aux" 1588520304 1549 a5a3752ae77eaf99e07eb473cbc23883 ""
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.tex" 1588520304 7357 c136d1637147a71ab2d50f2018823b48 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1480098698 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1480098698 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -36,6 +36,7 @@
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb" 1480098733 34811 78b52f49e893bcba91bd7581cdc144c0 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1480098733 32080 340ef9bf63678554ee606688e7b5339d ""
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb" 1480098733 32001 6aeea3afe875097b1eb0da29acd61e28 ""
+  "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1480098733 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1480098733 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1480098733 32722 d7379af29a190c3f453aba36302ff5a9 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1480098733 37944 359e864bd06cde3b1cf57bb20757fb06 ""
@@ -90,14 +91,14 @@
   "/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1495593472 2350277 a699055bee05bf8a40b0504752487295 ""
   "/usr/local/texlive/2017/texmf-var/web2c/pdftex/pdflatex.fmt" 1495593487 4129592 0e6cfee100d68e6d96b92c0258f2ff73 ""
   "/usr/local/texlive/2017/texmf.cnf" 1495593465 577 2b71d4d888f9e5560b2e99985915a9fa ""
-  "writeup.aux" 1588514646 1442 05388b83d6cca31d08e8c58397fb0d6d ""
-  "writeup.bbl" 1588514510 505 d281e16530a693f3492bdb4beec9529a "bibtex writeup"
-  "writeup.tex" 1588514646 5946 c4579a9da358f220c16415708b747e7b ""
-  "writeup.toc" 1588514646 975 1ecd4c523f2f7a2deacbb65bf70926a9 ""
+  "writeup.aux" 1588520304 1549 a5a3752ae77eaf99e07eb473cbc23883 ""
+  "writeup.bbl" 1588519980 782 f75b3d336797b75129a4600b3351ac93 "bibtex writeup"
+  "writeup.tex" 1588520304 7357 c136d1637147a71ab2d50f2018823b48 ""
+  "writeup.toc" 1588520304 975 9335eb0a973ecf17dc58ff4b9cd6e360 ""
   (generated)
-  "writeup.toc"
-  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf"
   "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.log"
-  "writeup.aux"
-  "writeup.pdf"
   "writeup.log"
+  "writeup.toc"
+  "writeup.pdf"
+  "writeup.aux"
+  "/Users/abhubert/LSE/MA429/summative/DataMiningProject/writeup/writeup.pdf"
