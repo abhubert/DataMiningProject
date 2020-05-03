@@ -9,6 +9,7 @@
 \usepackage[a4paper, hmargin = 2cm, vmargin = 3cm]{geometry}
 \usepackage{framed}
 \usepackage{fancyhdr}
+\usepackage[toc,page]{appendix}
 
 \pagestyle{fancy}
 \lhead{}
@@ -20,33 +21,130 @@
 
 
 \title{MA429 Summative Project}
-\author{}
+\author{43058}
 \date{May 2020}
 
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+    \centering
+    \par\vspace{1cm}
+    {\scshape\LARGE MA429\par}
+	{\scshape\LARGE algorithmic techniques for data mining\par}
+	\vspace{1cm}
+	{\scshape\Large Summative Project\par}
+	\vspace{1.5cm}
+	{\huge\bfseries WE need a Title\par}
+    \vspace{2cm}
+    {\large Candidates\par}
+    {\Large\itshape NEED CANDIDATE NUMS\par}
+    {\Large\itshape NEED CANDIDATE NUMS\par}
+	{\Large\itshape 43058\par}
+
+	\vfill
+
+% Bottom of the page
+	{\large \today\par}
+\end{titlepage}
+\newpage 
+\tableofcontents
+\newpage
+
+\newpage 
+\section*{Abstract}
+\newpage
 
 \section{Introduction}
 This report will focus on analysing data of Portuguese direct marketing campaigns of banking institutions. The data related to the success of selling long term bank deposites through phone campaigns \cite{moro_data-driven_2014}. The data provided by the UC Irvine Machine Learning repository includes input variables relating to personal information, banking information, and contact information of potential clients. It includes 41,188 observations and 21 variables.
 
 The analysis of banking data is extremely important for many reasons. This data can be used to promote equity, reduce fraud, and build a more resiliant economy. The data that we are analysing is Portuguese bank marketing including communication, banking, and demographic data. The analysis of such data though important comes with many pitfalls, demographic data has been purposefully used in conjunction with banking data to deny access to capital to certain disadvantaged groups such as in North American redlining of the mid 20th century \cite{harris_suburban_2003}. Even if there is no malicious intent these models can have a significant impact on who gets access and who does not and therefor it is important to understand biases and shortcomings of any model that is built as well as imperfections in the data itself.
 
+This report sets out to classify observations as whether an observation subscribed to a term deposit or not. We will focus on four classification methods, logistic regression, random forest, support vector machines, and neural networks. First we will discuss our data and preprocessing choices. Next we will focus on the data mining methods which we will then compare the effectiveness and interoperability of each method. Finally we will summarise our findings and look at limitations of our work.  
 
 
-\section{Methodology}
-\subsection{Overview}
+\section{Data Set}
+\subsection{Data Selection}
+The dataset was chosen with the express goal of being able to test data mining techniques with a goal to compare their effectiveness in a classification task. The data was selected from the UCI Machine Learning Repository as it would be well studied and documented.
 
+We chose the bank marketing dataset ... ADD SOME DETAIL HERE
 
-\subsection{Data Set}
+\subsection{Data Description}
+The data is broken into four categories, client information, current campaign contact information, previous campaign information, social-economic context indicators. It contains a mix of categorical and numerical data with full descriptions available in appendix A. The data was collected between May 2008 and November 2010 from a Portuguese banking institution.
 
-\subsection{Pre-processing}
+\section{Pre-processing}
+\subsection{Selecting Features}
 
+\subsection{Missing Values}
+
+\section{Data Mining Methods}
+\subsection{Random Forest}
+\subsection{Logistic Regression}
+\subsection{Support Vector Machines}
+\subsection{Neural Networks}
+\section{Summary}
+
+\section{Limitations}
 
 \section{Conclusions}
 
-
+\newpage
 \bibliographystyle{plain}
 \bibliography{summative}
+\newpage
+\appendix
+    \section{Table of Features}
+    \begin{tabular}{ |p{3cm}||p{6cm}|p{2cm}|}
+        \hline
+        \multicolumn{3}{|c|}{Client Data} \\
+        \hline
+        Feature & Description & Data Type\\
+        \hline
+        age & Age of a person & numeric\\ 
+        job & occupation of individual & categorical\\
+        marital & marital status & categorical\\
+        education & education level & categorical\\
+        default & has credit in default & categorical\\
+        housing & has a housing loan & categorical\\
+        loan  & has a personal loan & categorical\\
+        \hline
+    \end{tabular}\\
+    \begin{tabular}{ |p{3cm}||p{6cm}|p{2cm}|}
+        \hline
+        \multicolumn{3}{|c|}{Current Campaign Data} \\
+        \hline
+        contact & communication type & numeric\\ 
+        month & month contacted & categorical\\
+        day\_of\_week & dat contacted & categorical\\
+        duration & contact duration in seconds & numeric\\
+        \hline
+    \end{tabular}\\
+    \begin{tabular}{ |p{3cm}||p{6cm}|p{2cm}|}
+        \hline
+        \multicolumn{3}{|c|}{Previous Campaign Data} \\
+        \hline
+        campaign & & numeric\\ 
+        pdays &  & numeric\\
+        previous &  & numeric\\
+        poutcome &  & categorical\\
+        \hline
+    \end{tabular}\\
+    \begin{tabular}{ |p{3cm}||p{6cm}|p{2cm}|}
+        \hline
+        \multicolumn{3}{|c|}{Socio-Economic Climate Data} \\
+        \hline
+        emp.var.rate & & numeric\\ 
+        cons.price.idx &  & numeric\\
+        cons.conf.idx &  & numeric\\
+        euribor3m &  & numeric\\
+        nr.employed &  & numeric\\
+        \hline
+    \end{tabular}\\
+    \begin{tabular}{ |p{3cm}||p{6cm}|p{2cm}|}
+        \hline
+        \multicolumn{3}{|c|}{Output Variable} \\
+        \hline
+        y & has client subscribed & categorical\\ 
+        \hline
+    \end{tabular}
 
 \end{document}
