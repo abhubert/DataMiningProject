@@ -25,12 +25,14 @@ test_set = bankData[test_set_indices,]
 x_train <- training_set %>%
     select(-y)
 y_train <- training_set %>%
-    select(y)
+    select(y)%>%
+    mutate(y = ifelse(y == "No",0,1))
 
 x_test <- test_set %>%
     select(-y)
 y_test <- test_set %>%
-    select(y)
+    select(y) %>%
+    mutate(y = ifelse(y == "No",0,1))
 
 #converting to matrix to be compatible with the glmnet package
 x_train_mat <-  model.matrix(~. -1, x_train)
@@ -48,7 +50,7 @@ cv_ridge_logistic <- cv.glmnet(x_train_mat, y_train_mat, alpha = 0, family = "bi
 cv_ridge_logistic
 cv_best_lambda_logistic <- cv_ridge_logistic$lambda.min
 
-cv_ridge_pred_logistic = predict(cv_ridge_logistic,s=cv_best_lambda_logistic ,x_test_mat)
+cv_ridge_pred_logistic = predict(cv_ridge_logistic, s=cv_best_lambda_logistic, x_test_mat)
 
 cv_mse_log <-mse(cv_ridge_pred_logistic, y_test_mat)
 'best lambda MSE: ' 
@@ -57,6 +59,8 @@ cv_mse_log
 ?confusion.glmnet
 ?glmnet
 confusion.glmnet(cv_ridge_logistic, newx = x_test_mat, newy = y_test_mat)
+
+coef(cv_ridge_logistic)
 ```
 
 Lasso Regression
@@ -66,17 +70,23 @@ cv_lasso_logistic <- cv.glmnet(x_train_mat, y_train_mat, alpha = 1, family = "bi
 cv_lasso_logistic
 cv_lasso_lambda_logistic <- cv_lasso_logistic$lambda.min
 
-cv_lasso_pred_logistic = predict(cv_lasso_logistic,s=cv_lasso_lambda_logistic ,x_test_mat)
+cv_lasso_pred_logistic <- predict(cv_lasso_logistic,s=cv_lasso_lambda_logistic ,x_test_mat)
 
-cv_mse_lasso_log <-mse(cv_lasso_pred_logistic, y_test_mat)
+cv_mse_lasso_log <- mse(cv_lasso_pred_logistic, y_test_mat)
 'best lambda MSE: ' 
 cv_mse_lasso_log
 
 
 confusion.glmnet(cv_lasso_logistic, newx = x_test_mat, newy = y_test_mat)
+
+coef(cv_lasso_logistic)
 ```
 
 ```{r}
-baselogistic <- glm(y~., data=training_set, family=binomial(link="logit"))
+baselogistic <- glm.fit (y = y_train, x = x_train, family=binomial(link="logit"))
+
+glmpreds <- predict(baselogistic ,x_test)
+
+glmMse <- mse(glmpreds, y_test)
 ```
 

@@ -14,6 +14,8 @@ library(DMwR)
 library(vcd)
 library(car)
 library(caret)
+library(reshape2)
+library(ModelMetrics)
 ```
 
 ## Part A.Preprocessing
@@ -55,30 +57,30 @@ for (i in 1:dim(factor_variables)[2]){
 We could see there are many unknowns in the variables:job,maritial, education,default,housing loan,personal loan,for the education and default variables,the missing values are relatively large.Therefore we are quite intereseted in how are the missing values distributed.After learning the missing pattern,we could possibly find how to clean this dataset
 
 
-# First we need to find the missing value pattern with the dependable variables
+Second we need to find the missing value pattern with the target variable y
 ```{r}
 y_class<-data.frame(table(bank$y))
 colnames(y_class)<-c("class","amount")
 pie(y_class$amount,labels=y_class$class,radius=0.5,edges = 100,col=rainbow(2),main="Overall subscription decisions")
 
 ```
-We could see the y are not well distributed since we have so many no and relatively small amount of yes.It is a reflection of the reality for people to buy such a product.The ratio is about 8  if we compare no to yes.  
+We could see the y are not well distributed since we have so many no and relatively small amount of yes.It is a reflection of the reality for people to buy such a product.The ratio is about 8  if we compare no to yes. Hence,we are going to deal with this problem ,which distributes really unequally.
+
+
 ```{r}
 y_missingvariables_list<-list()
 for (i in 1:6){
   y_missingvariables_list[[i]]<-table(bank$y,factor_variables[,i])
 }
 ```
-The unknown values between no and yes class are basicly flucturate near 8 for varible job,maritial,education,housing and loans.This means they have connection wiith y but not so clear strong connection so that it could still be considered to have missing values at completely random
+The unknown values between no and yes class are basicly flucturate near 8 for varible job,maritial,education,housing and loans.This means they have connection with y but not so clear strong connection so that it could still be considered to have missing values at completely random
+*(Table display 1)
 
 But for default history,the ratio is relatively strange,a larger proportion denoted by unknown choosed not to subscibe the term deposit,there is no clear relationship between missing values for default and y
 
-     
-         no unknown   yes
-  no  28391    8154     3
-  yes  4197     443     0
 
-# Then we could analyze the missing values in their own to see whether they are missing not at random.For variables job,maritial,default,housing loan,personal loan the missing amounts are small and the number for each level  corresponds to the normal situation.No clear rules to verify missing not at random.
+
+Third we could analyze the missing values in their own to see whether they are missing not at random.For variables job,maritial,default,housing loan,personal loan the missing amounts are small and the number for each level  corresponds to the normal situation.No clear rules to verify missing not at random.
 
 However,the education level seems to have connection with itself as you can see there are very few people in illiterate class,we are aware of the education improvement policies and it should be low,but this number is really low compared with all the other levels.Maybe the people with higher education like university degree are preferred to state while people who receive less education do not want to show that.
      
@@ -86,7 +88,8 @@ However,the education level seems to have connection with itself as you can see 
   no    3748  2104     5572        8484         14             4648        10498           1480
   yes   428    188      473        1031          4             595        1670             251
 
-# Finally we could think whether they have relationships among other variables when they have missing data(missing at random).However,there are too many variables and we could not test every combination since some are not meaningful and definitely not correlated too much.
+
+Finally we could think whether they have relationships among other variables when they have missing data(missing at random).However,there are too many variables and we could not test every combination since some are not meaningful and definitely not correlated too much.
 We focus on the default history with other variables and we could get all the following tables
 ```{r}
 table(bank$default,bank$education)
@@ -102,7 +105,7 @@ We could see from these tables that the higher the education,the lower rate of d
 In all, we could possibly think that jobs,maritial,personal loan and housing loan have missing value completely at random,but education is missing not at random,while default variable is missing at random,depends on some variables.Therefore, we would possibly gesture different methods to deal with these missing values.
 
 
-## Filling the datasets
+B.Filling the datasets missing values 
 ```{r}
 missing_variables<-c("job","marital","education","default","housing","loan")
 for (i in missing_variables){bank[bank[[i]]=="unknown",i]<-NA}
@@ -204,7 +207,7 @@ result<-Basic_coefficients(bank[,1])
 ```
 
 From this stats summary,we could find that of all the observations,most are young people,only some are old people and the range is relatively large.
-While the duration has really extreme values,some people do not receive the phone call so they definitely have no subscriptions while some peole have gone through long time to have a second call.Probabaly we could just ignore this variable and leave it just as a benchmark.
+While the duration has really extreme values,some people do not receive the phone call so they definitely have no subscriptions while some peole have gone through long time to have a second call.Probabaly we could just ignore this variable and leave it just as a benchmark.We would delete it in the following steps
 
 The campaign variable also has large outliers as you can see that some people have many contacts while some just receive one.It could be that some clients are thought to be the most potential ones,they could possibly bring us a lot of value.While that pdays seems to be a little bit interesting,as there are many 999 in this dataset,which means a lot of them did not receive any campaign like this intented one.Maybe they had but they just not realized or they refused to tell the truth or maybe they actually did not,then this time it could be a possible chance to enlighten them through this campaign.Therefore, you could see many 0s for the previous variable 
 
@@ -426,7 +429,7 @@ trsf_cor<-cor(trsf)
 library(corrplot)
 corrplot(trsf_cor, order = "hclust", tl.col = "black", tl.srt = 45,cl.cex = 0.3,tl.cex = 0.7)
 ```
-From this we could see that we basicly have some covariates link to others so severly since you could see some significant correlations but someare the contradictory status.like the loan.yes and loan.no.Then we could possibly deal with this in the model selection part.
+From this we could see that we basicly have some covariates link to others so severly since you could see some significant correlations but some are the contradictory status.like the loan.yes and loan.no.Then we could possibly deal with this in the model selection part.
 
 4).Then we would like to know more about the potential outliers and we would use the glm model to see how many outliers there are.
 ```{r}
@@ -468,6 +471,13 @@ Also we need to remove the duplicated rows to reduce the time spent on caculatin
 
 
 PartB.Variable Selection and possible variable transformations
+The first biggest problem is that it is unbalanced between class no and yes for target variable y.
+```{r}
+bank_1_rebalanced<-SMOTE(y~.,data=bank_1,k=5,perc.over = 300,perc.under = 250)
+```
+just four times larger the size of the yes and 2.5 times the size of no.Hence,we would have 18288 yes and 34290 no.WHile this ratio is relatively more balanced.
+
+1).We would first deal with the unbalanced datasets and then cope with the rebalanced
 ```{r}
 bank_2<-bank_1
 bank_2$age<-(bank_2$age-min(bank_2$age))/(max(bank_2$age)-min(bank_2$age))
@@ -494,28 +504,267 @@ bank_dummy<-data.frame(predict(bank_dummy_list,newdata=bank_2))
 grid<-10^seq(10,-2,length=100)
 lasso_cv = cv.glmnet(as.matrix(bank_dummy[,-57]), as.matrix(bank_dummy[,57]),alpha=0.08,lambda = grid)
 predictors_lasso = (coef(lasso_cv,s = lasso_cv$lambda.min)[-1,] != 0)
-Bank_final1<-bank_dummy[,colnames(bank_dummy)[which(predictors_lasso==TRUE)]]
+Bank_final1<-cbind(bank_dummy[,colnames(bank_dummy)[which(predictors_lasso==TRUE)]],bank_dummy$y)
+Bank_final1<-rename(Bank_final1,c("bank_dummy$y"="y"))
 ```
 
 ```{r}
 # Adaptive lasso used
 library(msgps)
-fit4 <- msgps(as.matrix(bank_dummy[,-57]),y=as.vector(bank_dummy[,57]),penalty="alasso",gamma=1)
+fit4 <- msgps(as.matrix(bank_dummy[,-57]),y=as.vector(bank_dummy[,57]),penalty="alasso",gamma=1,lambda = 0.3)
 coef(fit4)
 Bank_final2<-bank_dummy[,colnames(bank_dummy)[which(coef(fit4)[,4]!=0)]]
+
 ```
 We used the BIC information criteria for the variable selection 
 
 ```{r}
 # Principal component analysis used
-prcma<-prcomp(x=bank_dummy,scale=F)
+prcma<-prcomp(x=bank_dummy[,-57],scale=F)
 pve<-(prcma$sdev)^2/sum(prcma$sdev^2)
 cumsum(pve)<=0.7
-Bank_final3<-as.data.frame(prcma$x[,1:13])
+Bank_final3<-cbind(as.data.frame(prcma$x[,1:13]),bank_dummy$y)
+Bank_final3<-rename(Bank_final3,c("bank_dummy$y"="y"))
+
 ```
 
-Part3.Analysis methods used
+PartC.Analysis methods used
 ```{r}
+training<-sample(nrow(Bank_final1),0.75*nrow(Bank_final1),replace = F)
+```
+1)First we do this in this unbalanced dataset
+A.Logistic regression method
+```{r}
+m1_glm1<-glm(y~.,data = Bank_final1[training,],family=binomial(link = "logit"))
+m1_glm2<-glm(y~.,data = Bank_final2[training,],family=binomial(link = "logit"))
+m1_glm3<-glm(y~.,data = Bank_final3[training,],family=binomial(link = "logit"))
+anova(m1_glm1,test="Chisq")
+anova(m1_glm1,test="Chisq")
+anova(m1_glm3,test="Chisq")
+```
+From the analysis,we could see that almost all of the variables are sinificant at the fifth level degree and plays an important role,but some are not since there could be some colinearity.From the table,you could see that,some variables show great influence on the decision whether to choose the deposit or not,like people who are  blue.collar,retired,student,single,called through cellular,contacted in winter seasons especially Nov are more likely to subscribe such a deposit.Also you could see the coefficients for the pdays,campaign are really high,which means the previous campaign has indeed cast great influence on the possibility of the clients to choose such a deposit or not.Besides,the economics context viewed from the table is also strong in the relationship with the clients' decision.
+
+To test the mean squared error for these three methods on training dataset
+```{r}
+cv.err.61<-cv.glm(data=Bank_final1[training,],m1_glm1,K=6)
+cv.err.62<-cv.glm(data=Bank_final2[training,],m1_glm2,K=6)
+cv.err.63<-cv.glm(data=Bank_final3[training,],m1_glm3,K=6)
+```
+
+To test the mean squared error for these three methods on test dataset
+```{r}
+cv.nerr.61<-cv.glm(data=Bank_final1[-training,],m1_glm1,K=6)
+cv.nerr.62<-cv.glm(data=Bank_final2[-training,],m1_glm2,K=6)
+cv.nerr.63<-cv.glm(data=Bank_final3[-training,],m1_glm3,K=6)
+```
+
+
+```{r}
+cv_logistic_model1 <- cv.glmnet(as.matrix(Bank_final1[training,-38]),as.matrix( Bank_final1[training,38]), alpha = 0, family = "binomial")
+confusionm_log1<-confusion.glmnet(cv_logistic_model1, newx = as.matrix(Bank_final1[-training,-38]), newy = as.vector(Bank_final1[-training,38]))
+
+cv_logistic_model2 <- cv.glmnet(as.matrix(Bank_final2[training,-33]),as.matrix( Bank_final2[training,33]), alpha = 0, family = "binomial")
+confusionm_log2<-confusion.glmnet(cv_logistic_model2, newx = as.matrix(Bank_final2[-training,-33]), newy = as.vector(Bank_final2[-training,33]))
+
+cv_logistic_model3 <- cv.glmnet(as.matrix(Bank_final3[training,-14]),as.matrix( Bank_final3[training,14]), alpha = 0, family = "binomial")
+confusionm_log3<-confusion.glmnet(cv_logistic_model3, newx =as.matrix(Bank_final3[-training,-14]), newy = as.vector(Bank_final3[-training,14]))
+
+misclassification_rate1<-(confusionm_log1[2]+confusionm_log1[3])/(39099-29324)
+misclassification_rate2<-(confusionm_log2[2]+confusionm_log2[3])/(39099-29324)
+misclassification_rate3<-(confusionm_log3[2]+confusionm_log3[3])/(39099-29324)
+precision_rate1<-confusionm_log1[4]/(confusionm_log1[2]+confusionm_log1[4])
+precision_rate2<-confusionm_log2[4]/(confusionm_log2[2]+confusionm_log2[4])
+precision_rate3<-confusionm_log3[4]/(confusionm_log3[2]+confusionm_log3[4])
+recall_rate1<-confusionm_log1[4]/(confusionm_log1[4]+confusionm_log1[3])
+recall_rate2<-confusionm_log2[4]/(confusionm_log2[4]+confusionm_log2[3])
+recall_rate3<-confusionm_log3[4]/(confusionm_log3[4]+confusionm_log3[3])
+mse_knn1<-mse(as.matrix(Bank_final1[training,38]),predict.glmnet(cv_logistic_model1,newx=as.matrix(Bank_final1[-training,-38])))
+```
+
+B.KNN methods
+```{r}
+pred_knn1= knn3Train(Bank_final1[training,-38],Bank_final1[-training,-38],Bank_final1[training,38],k=9)
+pred_knn2= knn3Train(Bank_final2[training,-33],Bank_final2[-training,-33],Bank_final2[training,33],k=9)
+pred_knn3= knn3Train(Bank_final3[training,-14],Bank_final3[-training,-14],Bank_final3[training,14],k=9)
+
+getMetrics = function(predicted_classes,true_classes) {
+  confusion_matrix = table(predicted_classes,true_classes)
+  true_neg = confusion_matrix["0","0"]
+  true_pos = confusion_matrix["1","1"]
+  false_pos = confusion_matrix["1","0"]
+  false_neg = confusion_matrix["0","1"]
+  misclassification_rate = mean(predicted_classes != true_classes)
+  precision = true_pos / (true_pos + false_pos)
+  recall = true_pos / (true_pos + false_neg)
+  return(c("misclassification" = misclassification_rate,
+           "precision" = precision,
+           "recall" = recall))
+}
+knn_matrics1<-getMetrics(pred_knn1,Bank_final1[-training,]$y)
+knn_matrics2<-getMetrics(pred_knn2,Bank_final2[-training,]$y)
+knn_matrics3<-getMetrics(pred_knn3,Bank_final3[-training,]$y)
 
 ```
 
+
+C.NaiveBayes model
+```{r}
+nb1<-naive_bayes(as.factor(y)~.,data=Bank_final1[training,],laplace = 1)
+pred_n1<-predict(nb1,newdata = Bank_final1[-training,],type = "class")
+nb2<-naive_bayes(as.factor(y)~.,data=Bank_final2[training,],laplace = 1)
+pred_n2<-predict(nb1,newdata = Bank_final2[-training,],type = "class")
+nb3<-naive_bayes(as.factor(y)~.,data=Bank_final3[training,],laplace = 1)
+pred_n3<-predict(nb1,newdata = Bank_final3[-training,],type = "class")
+```
+
+```{r}
+nb_matrics1<-getMetrics(pred_n1,Bank_final1[-training,]$y)
+nb_matrics2<-getMetrics(pred_n2,Bank_final2[-training,]$y)
+nb_matrics3<-getMetrics(pred_n3,Bank_final3[-training,]$y)
+```
+
+2) Then we do the rebalanced dataset 
+```{r}
+bank_2_rebalanced<-bank_1_rebalanced
+bank_2_rebalanced$age<-(bank_2_rebalanced$age-min(bank_2_rebalanced$age))/(max(bank_2_rebalanced$age)-min(bank_2_rebalanced$age))
+bank_2_rebalanced$campaign<-(bank_2_rebalanced$campaign-min(bank_2_rebalanced$campaign))/(max(bank_2_rebalanced$campaign)-min(bank_2_rebalanced$campaign))
+bank_2_rebalanced$pdays<-bank_2_rebalanced$pdays/1000
+bank_2_rebalanced$emp.var.rate<-exp(bank_2_rebalanced$emp.var.rate)/sum(exp(bank_2_rebalanced$emp.var.rate))
+bank_2_rebalanced$cons.conf.idx<-exp(bank_2_rebalanced$cons.conf.idx)/sum(exp(bank_2_rebalanced$cons.conf.idx))
+bank_2_rebalanced$cons.price.idx=bank_2_rebalanced$cons.price.idx/100
+bank_2_rebalanced$euribor3m<-(bank_2_rebalanced$euribor3m-min(bank_2_rebalanced$euribor3m))/(max(bank_2_rebalanced$euribor3m)-min(bank_2_rebalanced$euribor3m))
+bank_2_rebalanced$nr.employed<-(bank_2_rebalanced$nr.employed-min(bank_2_rebalanced$nr.employed))/(max(bank_2_rebalanced$nr.employed)-min(bank_2_rebalanced$nr.employed))
+bank_2_rebalanced$y<-ifelse(bank_2_rebalanced$y=="yes",1,0)
+```
+We have done some transformations based on the charateristics of these variables,some variables we adopt the min-max method,while some we use decimal scaling method like pdays and cons.price.idx since the largest number in them is really large.while some we use the vectorized normalization method,like the emp.var.rate.
+
+
+For the selection part,since there are too many correlated variables ,some are just in linear form relationship,so that we would like to use three methods to choose the appropriate variables for the next following analysis method.
+
+The first method is lasso,which is commonly used for dimension reduction.While the second we would use the adaptive lasso method since it seems there are some covariates are in strong relationships with other covariates.Normal lasso seems not deal with this really well.
+Third,we would like to choose the Principal component analysis method  for finding the most propos covariates. 
+```{r}
+# Lasso used
+bank_dummy_list_rebalanced<-dummyVars(~.,data=bank_2_rebalanced)
+bank_dummy_rebalanced<-data.frame(predict(bank_dummy_list_rebalanced,newdata=bank_2_rebalanced))
+grid_rebalanced<-10^seq(10,-2,length=100)
+lasso_cv_rebalanced = cv.glmnet(as.matrix(bank_dummy_rebalanced[,-57]), as.matrix(bank_dummy_rebalanced[,57]),alpha=0.08,lambda = grid_rebalanced)
+predictors_lasso_rebalanced = (coef(lasso_cv_rebalanced,s = lasso_cv_rebalanced$lambda.min)[-1,] != 0)
+Bank_final1_rebalanced<-cbind(bank_dummy_rebalanced[,colnames(bank_dummy_rebalanced)[which(predictors_lasso==TRUE)]],bank_dummy_rebalanced$y)
+Bank_final1_rebalanced<-rename(Bank_final1_rebalanced,c("bank_dummy_rebalanced$y"="y"))
+```
+
+```{r}
+# Adaptive lasso used
+library(msgps)
+fit4_rebalanced <- msgps(as.matrix(bank_dummy_rebalanced[,-57]),y=as.vector(bank_dummy_rebalanced[,57]),penalty="alasso",gamma=1,lambda = 0.3)
+coef(fit4_rebalanced)
+Bank_final2_rebalanced<-bank_dummy_rebalanced[,colnames(bank_dummy_rebalanced)[which(coef(fit4_rebalanced)[,4]!=0)]]
+
+```
+We used the BIC information criteria for the variable selection 
+
+```{r}
+# Principal component analysis used
+prcma_rebalanced<-prcomp(x=bank_dummy_rebalanced[,-57],scale=F)
+pve_rebalanced<-(prcma_rebalanced$sdev)^2/sum(prcma_rebalanced$sdev^2)
+cumsum(pve_rebalanced)<=0.7
+Bank_final3_rebalanced<-cbind(as.data.frame(prcma_rebalanced$x[,1:13]),bank_dummy_rebalanced$y)
+Bank_final3_rebalanced<-rename(Bank_final3_rebalanced,c("bank_dummy_rebalanced$y"="y"))
+
+```
+
+PartC.Analysis methods used
+```{r}
+training_rebalanced<-sample(nrow(Bank_final1_rebalanced),0.75*nrow(Bank_final1_rebalanced),replace = F)
+```
+1)First we do this in this unbalanced dataset
+A.Logistic regression method
+```{r}
+m1_glm1_rebalanced<-glm(y~.,data = Bank_final1_rebalanced[training_rebalanced,],family=binomial(link = "logit"))
+m1_glm2_rebalanced<-glm(y~.,data = Bank_final2_rebalanced[training_rebalanced,],family=binomial(link = "logit"))
+m1_glm3_rebalanced<-glm(y~.,data = Bank_final3_rebalanced[training_rebalanced,],family=binomial(link = "logit"))
+anova(m1_glm1,test="Chisq")
+anova(m1_glm1,test="Chisq")
+anova(m1_glm3,test="Chisq")
+```
+From the analysis,we could see that almost all of the variables are sinificant at the fifth level degree and plays an important role,but some are not since there could be some colinearity.From the table,you could see that,some variables show great influence on the decision whether to choose the deposit or not,like people who are  blue.collar,retired,student,single,called through cellular,contacted in winter seasons especially Nov are more likely to subscribe such a deposit.Also you could see the coefficients for the pdays,campaign are really high,which means the previous campaign has indeed cast great influence on the possibility of the clients to choose such a deposit or not.Besides,the economics context viewed from the table is also strong in the relationship with the clients' decision.
+
+To test the mean squared error for these three methods on training dataset
+```{r}
+cv.err.61_rebalanced<-cv.glm(data=Bank_final1_rebalanced[training_rebalanced,],m1_glm1,K=6)
+cv.err.62_rebalanced<-cv.glm(data=Bank_final2_rebalanced[training_rebalanced,],m1_glm2,K=6)
+cv.err.63_rebalanced<-cv.glm(data=Bank_final3_rebalanced[training_rebalanced,],m1_glm3,K=6)
+```
+
+To test the mean squared error for these three methods on test dataset
+```{r}
+cv.nerr.61_rebalanced<-cv.glm(data=Bank_final1_rebalanced[-training_rebalanced,],m1_glm1,K=6)
+cv.nerr.62_rebalanced<-cv.glm(data=Bank_final2_rebalanced[-training_rebalanced,],m1_glm2,K=6)
+cv.nerr.63_rebalanced<-cv.glm(data=Bank_final3_rebalanced[-training_rebalanced,],m1_glm3,K=6)
+```
+
+
+```{r}
+cv_logistic_model1_rebalanced <- cv.glmnet(as.matrix(Bank_final1_rebalanced[training_rebalanced,-38]),as.matrix(Bank_final1_rebalanced[training_rebalanced,38]), alpha = 0, family = "binomial")
+confusionm_log1_rebalanced<-confusion.glmnet(cv_logistic_model1, newx =as.matrix(Bank_final1_rebalanced[-training_rebalanced,-38]), newy = as.vector(Bank_final1_rebalanced[-training_rebalanced,38]))
+                                               
+                                               cv_logistic_model2_rebalanced<-cv.glmnet(as.matrix(Bank_final2_rebalanced[training_rebalanced,-50]),as.matrix( Bank_final2_rebalanced[training_rebalanced,50]), alpha = 0, family = "binomial")
+confusionm_log2_rebalanced<-confusion.glmnet(cv_logistic_model2_rebalanced, newx = as.matrix(Bank_final2_rebalanced[-training_rebalanced,-50]), newy = as.vector(Bank_final2_rebalanced[-training_rebalanced,50]))
+
+cv_logistic_model3_rebalanced <- cv.glmnet(as.matrix(Bank_final3_rebalanced[training_rebalanced,-14]),as.matrix( Bank_final3_rebalanced[training_rebalanced,14]), alpha = 0, family = "binomial")
+confusionm_log3_rebalanced<-confusion.glmnet(cv_logistic_model3_rebalanced, newx =as.matrix(Bank_final3_rebalanced[-training_rebalanced,-14]), newy = as.vector(Bank_final3_rebalanced[-training_rebalanced,14]))
+
+misclassification_rate1_rebalanced<-(confusionm_log1_rebalanced[2]+confusionm_log1_rebalanced[3])/(39099-29324)
+misclassification_rate2_rebalanced<-(confusionm_log2_rebalanced[2]+confusionm_log2_rebalanced[3])/(39099-29324)
+misclassification_rate3_rebalanced<-(confusionm_log3_rebalanced[2]+confusionm_log3_rebalanced[3])/(39099-29324)
+precision_rate1_rebalanced<-confusionm_log1_rebalanced[4]/(confusionm_log1_rebalanced[2]+confusionm_log1_rebalanced[4])
+precision_rate2_rebalanced<-confusionm_log2_rebalanced[4]/(confusionm_log2_rebalanced[2]+confusionm_log2_rebalanced[4])
+precision_rate3_rebalanced<-confusionm_log3_rebalanced[4]/(confusionm_log3_rebalanced[2]+confusionm_log3_rebalanced[4])
+recall_rate1_rebalanced<-confusionm_log1_rebalanced[4]/(confusionm_log1_rebalanced[4]+confusionm_log1_rebalanced[3])
+recall_rate2_rebalanced<-confusionm_log2_rebalanced[4]/(confusionm_log2_rebalanced[4]+confusionm_log2_rebalanced[3])
+recall_rate3_rebalanced<-confusionm_log3_rebalanced[4]/(confusionm_log3_rebalanced[4]+confusionm_log3_rebalanced[3])
+
+```
+
+B.KNN methods
+```{r}
+pred_knn1_rebalanced= knn3Train(Bank_final1_rebalanced[training_rebalanced,-38],Bank_final1_rebalanced[-training_rebalanced,-38],Bank_final1_rebalanced[training_rebalanced,38],k=9)
+pred_knn2_rebalanced= knn3Train(Bank_final2_rebalanced[training_rebalanced,-33],Bank_final2_rebalanced[-training_rebalanced,-33],Bank_final2_rebalanced[training_rebalanced,33],k=9)
+pred_knn3_rebalanced= knn3Train(Bank_final3_rebalanced[training_rebalanced,-14],Bank_final3_rebalanced[-training_rebalanced,-14],Bank_final3_rebalanced[training_rebalanced,14],k=9)
+
+getMetrics = function(predicted_classes,true_classes) {
+  confusion_matrix = table(predicted_classes,true_classes)
+  true_neg = confusion_matrix["0","0"]
+  true_pos = confusion_matrix["1","1"]
+  false_pos = confusion_matrix["1","0"]
+  false_neg = confusion_matrix["0","1"]
+  misclassification_rate = mean(predicted_classes != true_classes)
+  precision = true_pos / (true_pos + false_pos)
+  recall = true_pos / (true_pos + false_neg)
+  return(c("misclassification" = misclassification_rate,
+           "precision" = precision,
+           "recall" = recall))
+}
+knn_matrics1_rebalanced<-getMetrics(pred_knn1_rebalanced,Bank_final1_rebalanced[-training_rebalanced,]$y)
+knn_matrics2_rebalanced<-getMetrics(pred_knn2_rebalanced,Bank_final2_rebalanced[-training_rebalanced,]$y)
+knn_matrics3_rebalanced<-getMetrics(pred_knn3_rebalanced,Bank_final3_rebalanced[-training_rebalanced,]$y)
+
+```
+
+
+C.NaiveBayes model
+```{r}
+nb1_rebalanced<-naive_bayes(as.factor(y)~.,data=Bank_final1_rebalanced[training_rebalanced,],laplace = 1)
+pred_n1_rebalanced<-predict(nb1,newdata = Bank_final1_rebalanced[-training_rebalanced,],type = "class")
+nb2_rebalanced<-naive_bayes(as.factor(y)~.,data=Bank_final2_rebalanced[training_rebalanced,],laplace = 1)
+pred_n2_rebalanced<-predict(nb1,newdata = Bank_final2_rebalanced[-training_rebalanced,],type = "class")
+nb3_rebalanced<-naive_bayes(as.factor(y)~.,data=Bank_final3_rebalanced[training_rebalanced,],laplace = 1)
+pred_n3_rebalanced<-predict(nb1,newdata = Bank_final3_rebalanced[-training_rebalanced,],type = "class")
+```
+
+```{r}
+nb_matrics1_rebalanced<-getMetrics(pred_n1_rebalanced,Bank_final1_rebalanced[-training_rebalanced,]$y)
+nb_matrics2_rebalanced<-getMetrics(pred_n2_rebalanced,Bank_final2_rebalanced[-training_rebalanced,]$y)
+nb_matrics3_rebalanced<-getMetrics(pred_n3_rebalanced,Bank_final3_rebalanced[-training_rebalanced,]$y)
+```
